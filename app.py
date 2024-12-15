@@ -4,22 +4,37 @@ from task import Tasks
 
 to_do_list=[]
 
-def print_to_do_list():
-    print(to_do_list)
-
 def add_task():
     user_task = entry.get()
     user_task_urgency = urgency.get()
     Tasks.name = user_task
     Tasks.urgency = user_task_urgency
     to_do_list.append({"Task": Tasks.name, "Urgency": Tasks.urgency})
-    print_to_do_list()
+    display_tasks()
 
 def display_tasks():
-    text.delete('1.0', END)  # Clear previous content
-    for task in to_do_list:
-        text.insert(END, f"{task}\n")  # Insert each task into the Text widget
-    
+    text.delete('1.0', END)  # Clear previous tasks in the Text widget
+    for index, task in enumerate(to_do_list):
+        task_text = f"Task: {task['Task']} - Urgency: {task['Urgency']}\n"
+        tag_name = f"task_{index}" 
+        text.insert(END, task_text, tag_name)
+        # Bind left click to toggle the finished state
+        text.tag_bind(tag_name, "<Button-1>", lambda e, tag=tag_name: toggle_finished(tag))
+
+def toggle_finished(tag):
+    # Toggle strikethrough for the task with the given tag
+    current_style = text.tag_cget(tag, "overstrike")
+    if current_style == "1":  # If already crossed off, remove strikethrough
+        text.tag_config(tag, overstrike=0)
+    else:  # If not crossed off, apply strikethrough
+        text.tag_config(tag, overstrike=1)
+
+
+def sort_tasks():
+    text.delete(1.0, END)
+    sorted_list = sorted(to_do_list, key=lambda task: int(task["Urgency"]))
+    for task in sorted_list:
+        print(f"Task: {task['Task']} - Urgency: {task['Urgency']}")
 
 # Create main window
 window = Tk()
@@ -47,8 +62,9 @@ add_task_button.pack()
 
 text = Text(window, width=40, height=10)
 text.pack()
-display_tasks_button = ttk.Button(window, text="Show My Tasks", command=display_tasks)
-display_tasks_button.pack()
+
+sort_tasks_button = ttk.Button(window, text="Sort Tasks", command=sort_tasks)
+sort_tasks_button.pack()
 
 window.mainloop() 
 
